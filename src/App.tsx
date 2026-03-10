@@ -8,10 +8,13 @@ import KPICards from './components/KPICards';
 import ClientTable from './components/ClientTable';
 import ClientDetail from './components/ClientDetail';
 import RecordModal from './components/RecordModal';
+import SalesTable from './components/SalesTable';
+import DashboardCharts from './components/DashboardCharts';
 
 export default function App() {
   const [data, setData] = useState<VentaHistorica[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentView, setCurrentView] = useState<'dashboard' | 'historico' | 'clientes'>('dashboard');
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<VentaHistorica | null>(null);
@@ -102,6 +105,14 @@ export default function App() {
     setIsModalOpen(true);
   };
 
+  const handleViewChange = (view: 'dashboard' | 'historico' | 'clientes') => {
+    setCurrentView(view);
+    setSelectedClient(null);
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  };
+
   const years = Array.from(new Set(data.map(d => d.año))).sort((a, b) => b - a);
   const filteredData = selectedYear === 'Todos' 
     ? data 
@@ -121,7 +132,12 @@ export default function App() {
 
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out z-40 w-64 border-r border-gray-100 bg-white shadow-2xl lg:shadow-none`}>
-        <Sidebar onNewRecord={openNewModal} onClose={() => setIsSidebarOpen(false)} />
+        <Sidebar 
+          currentView={currentView}
+          onViewChange={handleViewChange}
+          onNewRecord={openNewModal} 
+          onClose={() => setIsSidebarOpen(false)} 
+        />
       </div>
       
       {/* Main Content */}
@@ -133,18 +149,36 @@ export default function App() {
             <div className="flex items-center gap-4">
               <button 
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="p-2.5 bg-white rounded-xl shadow-sm text-[#111111] hover:bg-gray-50 transition-colors border border-gray-100"
+                className="p-2.5 bg-white rounded-xl shadow-sm text-[#111111] hover:bg-gray-50 transition-colors border border-gray-100 lg:hidden"
               >
                 <Menu size={24} />
               </button>
-              <div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#111111] tracking-tight">Ventas Históricas</h1>
-                <p className="text-[#555555] text-sm sm:text-base mt-1">Dashboard consolidado de facturación</p>
+              <div className="flex items-center gap-4 sm:gap-6">
+                <div className="flex items-center justify-center bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-gray-100">
+                  <img 
+                    src="https://upkvrgncduvxzjvtxbpv.supabase.co/storage/v1/object/public/Imagenes%20Disruptia/Logo%20disruptia_BN_sinfondo.png" 
+                    alt="Disruptia Logo" 
+                    className="h-8 sm:h-12 object-contain"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#111111] tracking-tight">
+                    {currentView === 'dashboard' && 'Dashboard de Ventas'}
+                    {currentView === 'historico' && 'Histórico de Ventas'}
+                    {currentView === 'clientes' && 'Directorio de Clientes'}
+                  </h1>
+                  <p className="text-[#555555] text-sm sm:text-base mt-1">
+                    {currentView === 'dashboard' && 'Métricas y gráficos de facturación'}
+                    {currentView === 'historico' && 'Registro detallado de todas las transacciones'}
+                    {currentView === 'clientes' && 'Consolidado de clientes y facturación'}
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Year Filter */}
-            <div className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 self-start sm:self-auto">
+            <div className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-xl shadow-sm border border-gray-100 self-start sm:self-auto shrink-0">
               <Filter size={18} className="text-[#5046E5]" />
               <select 
                 value={selectedYear}
@@ -165,21 +199,38 @@ export default function App() {
             </div>
           ) : (
             <div className="space-y-8 lg:space-y-10 pb-20">
-              <KPICards data={filteredData} />
+              {currentView === 'dashboard' && (
+                <>
+                  <KPICards data={filteredData} />
+                  <DashboardCharts data={filteredData} />
+                </>
+              )}
               
-              {selectedClient ? (
-                <ClientDetail 
-                  clientName={selectedClient} 
+              {currentView === 'historico' && (
+                <SalesTable 
                   data={filteredData} 
-                  onBack={() => setSelectedClient(null)} 
                   onEdit={openEditModal}
                   onDelete={handleDelete}
                 />
-              ) : (
-                <ClientTable 
-                  data={filteredData} 
-                  onSelectClient={setSelectedClient} 
-                />
+              )}
+
+              {currentView === 'clientes' && (
+                <>
+                  {selectedClient ? (
+                    <ClientDetail 
+                      clientName={selectedClient} 
+                      data={filteredData} 
+                      onBack={() => setSelectedClient(null)} 
+                      onEdit={openEditModal}
+                      onDelete={handleDelete}
+                    />
+                  ) : (
+                    <ClientTable 
+                      data={filteredData} 
+                      onSelectClient={setSelectedClient} 
+                    />
+                  )}
+                </>
               )}
             </div>
           )}

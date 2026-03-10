@@ -1,17 +1,22 @@
-import { LayoutDashboard, Settings, Users, Plus, X } from 'lucide-react';
+import { LayoutDashboard, Users, Plus, X, FileText } from 'lucide-react';
 
 interface SidebarProps {
+  currentView: 'dashboard' | 'historico' | 'clientes';
+  onViewChange: (view: 'dashboard' | 'historico' | 'clientes') => void;
   onNewRecord: () => void;
   onClose?: () => void;
 }
 
-export default function Sidebar({ onNewRecord, onClose }: SidebarProps) {
+export default function Sidebar({ currentView, onViewChange, onNewRecord, onClose }: SidebarProps) {
   return (
     <div className="w-64 bg-white h-full flex flex-col">
       <div className="p-6 flex items-center justify-between">
-        <div className="inline-block border-2 border-[#111111] rounded-full px-4 py-1.5">
-          <span className="font-black text-lg tracking-wider text-[#111111]">DISRUPTIA</span>
-        </div>
+        <img 
+          src="https://upkvrgncduvxzjvtxbpv.supabase.co/storage/v1/object/public/Imagenes%20Disruptia/Logo%20disruptia_BN_sinfondo.png" 
+          alt="Disruptia" 
+          className="h-8 object-contain"
+          referrerPolicy="no-referrer"
+        />
         {onClose && (
           <button onClick={onClose} className="lg:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
             <X size={20} />
@@ -30,18 +35,39 @@ export default function Sidebar({ onNewRecord, onClose }: SidebarProps) {
       </div>
 
       <nav className="flex-1 px-4 space-y-2">
-        <a href="#" className="flex items-center gap-3 px-4 py-3 bg-[#F5F5F5] text-[#111111] rounded-xl font-bold">
+        <button 
+          onClick={() => onViewChange('dashboard')}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-colors ${
+            currentView === 'dashboard' 
+              ? 'bg-[#F5F5F5] text-[#111111]' 
+              : 'text-[#555555] hover:bg-gray-50 font-medium'
+          }`}
+        >
           <LayoutDashboard size={20} />
           <span>Dashboard</span>
-        </a>
-        <a href="#" className="flex items-center gap-3 px-4 py-3 text-[#555555] hover:bg-gray-50 rounded-xl font-medium transition-colors">
+        </button>
+        <button 
+          onClick={() => onViewChange('historico')}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-colors ${
+            currentView === 'historico' 
+              ? 'bg-[#F5F5F5] text-[#111111]' 
+              : 'text-[#555555] hover:bg-gray-50 font-medium'
+          }`}
+        >
+          <FileText size={20} />
+          <span>Histórico de Ventas</span>
+        </button>
+        <button 
+          onClick={() => onViewChange('clientes')}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-colors ${
+            currentView === 'clientes' 
+              ? 'bg-[#F5F5F5] text-[#111111]' 
+              : 'text-[#555555] hover:bg-gray-50 font-medium'
+          }`}
+        >
           <Users size={20} />
           <span>Clientes</span>
-        </a>
-        <a href="#" className="flex items-center gap-3 px-4 py-3 text-[#555555] hover:bg-gray-50 rounded-xl font-medium transition-colors">
-          <Settings size={20} />
-          <span>Configuración</span>
-        </a>
+        </button>
       </nav>
     </div>
   );
